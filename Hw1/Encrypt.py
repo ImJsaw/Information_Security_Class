@@ -19,6 +19,9 @@ def int2char(i):
     index = (i+26)%26 + ord('a')
     return chr(index)
 
+
+
+
 class WrongInputException(Exception):
     pass
 
@@ -43,8 +46,26 @@ class CaesarEncryptor(BaseEncryptor):
         return ans_txt
 
 class PlayfairEncryptor(BaseEncryptor):
-    def encrypt(self):
+    a2z = "abcdefghijklmnopqrstuvwxyz"
+    matrix = []
+    #ignore duplicated char & blank, then put str into matrix
+    def putMatrix(self, rawStr):
+        for char in rawStr:
+            # i/j considered same
+            if char == 'j':
+                c = 'i'
+            else:
+                c = char
+            if c not in self.matrix and c != ' ':
+                self.matrix.append(c)
         pass
+
+    def encrypt(self):
+        self.putMatrix(self.plainTxt)
+        self.putMatrix(self.a2z)
+        
+        return self.matrix
+    
 
 class VernamEncryptor(BaseEncryptor):
     def encrypt(self):
