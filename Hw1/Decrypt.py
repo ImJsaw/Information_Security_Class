@@ -1,3 +1,4 @@
+import abc
 import sys
 
 CAESAR = 'caesar'
@@ -13,12 +14,18 @@ class WrongInputException(Exception):
     pass
 
 
-class Decryptor:
+class BaseDecryptor:
     def __init__(self, key: str, cipher_text: str):
-        self.cipher_text = cipher_text.lower()
         self.key = key
+        self.cipher_text = cipher_text
 
-    def caesar_decrypt(self) -> str:
+    @abc.abstractmethod
+    def decrypt(self):
+        pass
+
+
+class CaesarDecryptor(BaseDecryptor):
+    def decrypt(self):
         if int(self.key) < 0 or int(self.key) > 26:
             raise WrongInputException()
 
@@ -33,32 +40,44 @@ class Decryptor:
             ans_text += chr(origin_ascii_code)
         return ans_text
 
-    def playfair_decrypt(self) -> str:
+
+class PlayfairDecryptor(BaseDecryptor):
+    def decrypt(self) -> str:
         pass
 
-    def vernam_decrypt(self) -> str:
+
+class VernamDecryptor(BaseDecryptor):
+    def decrypt(self) -> str:
         pass
 
-    def row_decrypt(self) -> str:
+
+class RowDecryptor(BaseDecryptor):
+    def decrypt(self) -> str:
         pass
 
-    def rail_fence_decrypt(self) -> str:
+
+class RailFenceDecryptor(BaseDecryptor):
+    def decrypt(self) -> str:
         pass
 
 
 print(f'cipher:{sys.argv[1]}, key:{sys.argv[2]}, cipher_text:{sys.argv[3]}')
 
-decryptor = Decryptor(key=sys.argv[2], cipher_text=sys.argv[3])
 if cipher == CAESAR:
-    origin_text = decryptor.caesar_decrypt()
+    caesar_decryptor = CaesarDecryptor(key=sys.argv[2], cipher_text=sys.argv[3])
+    origin_text = caesar_decryptor.decrypt()
 elif cipher == PLAYFAIR:
-    origin_text = decryptor.playfair_decrypt()
+    playfair_decryptor = PlayfairDecryptor(key=sys.argv[2], cipher_text=sys.argv[3])
+    origin_text = playfair_decryptor.decrypt()
 elif cipher == VERNAM:
-    origin_text = decryptor.vernam_decrypt()
+    vernam_decryptor = VernamDecryptor(key=sys.argv[2], cipher_text=sys.argv[3])
+    origin_text = vernam_decryptor.decrypt()
 elif cipher == ROW:
-    origin_text = decryptor.row_decrypt()
+    row_decryptor = RowDecryptor(key=sys.argv[2], cipher_text=sys.argv[3])
+    origin_text = row_decryptor.decrypt()
 elif cipher == RAIL_FENCE:
-    origin_text = decryptor.rail_fence_decrypt()
+    rail_fence_decryptor = RailFenceDecryptor(key=sys.argv[2], cipher_text=sys.argv[3])
+    origin_text = rail_fence_decryptor.decrypt()
 else:
     raise WrongInputException()
 
