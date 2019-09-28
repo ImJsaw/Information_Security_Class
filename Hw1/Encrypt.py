@@ -1,5 +1,6 @@
 import abc
 import sys
+import math
 
 CAESAR = 'caesar'
 PLAYFAIR = 'playfair'
@@ -38,34 +39,80 @@ class CaesarEncryptor(BaseEncryptor):
     def encrypt(self):
         if int(self.key) < 0 or int(self.key) > 26:
             raise WrongInputException()
-        ans_txt = ''
+        cipherTxt = ''
         for c in self.plainTxt:
             #change to int, then back to char after calc
             index = char2int(c) + int(self.key)
-            ans_txt += int2char(index)
-        return ans_txt
+            cipherTxt += int2char(index)
+        return cipherTxt
 
 class PlayfairEncryptor(BaseEncryptor):
-    a2z = "abcdefghijklmnopqrstuvwxyz"
+    a2z = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     matrix = []
     #ignore duplicated char & blank, then put str into matrix
     def putMatrix(self, rawStr):
         for char in rawStr:
             # i/j considered same
-            if char == 'j':
-                c = 'i'
+            if char.upper() == 'J':
+                c = 'I'
             else:
-                c = char
+                c = char.upper()
             if c not in self.matrix and c != ' ':
                 self.matrix.append(c)
         pass
+    
+    def processPlainTxt(self):
+        ans = ""
+        for char in self.plainTxt:
+            # divide same letter in a block
+            if ans != "" and char.upper() == ans[-1] and len(ans) %2 == 1:
+                ans += "X"
+            # ignore blank
+            if char != ' ':
+                ans += char.upper()
+        # plaintxt len can't be odd
+        if len(ans) %2 == 1:
+            ans += "X"
+        return ans
+    # matrix index & char converter
+    def getMatrixIndex(self, char):
+        if char.upper() == 'J':
+            c = 'I'
+        else:
+            c = char.upper()
+        return self.matrix.index(c)   
+    def getMatrixChar(self, index):
+        return self.matrix[index%25]
+    
+    #get the row head index in matrix
+    def getHeadIndex(self, index):
+        return math.floor(index/5)*5
+
+    # func for single block
+    def playfairFunc(self, char1, char2):
+        # change to index
+        index1 = self.getMatrixIndex(char1)
+        index2 = self.getMatrixIndex(char2)
+        ans = ""
+        # same column
+        if index1%5 == index2%5:
+            ans = self.getMatrixChar(index1+5) + self.getMatrixChar(index2+5)
+        # same row
+        elif math.floor(index1/5) == math.floor(index2/5):
+            ans = self.getMatrixChar(self.getHeadIndex(index1) + (index1%5+1)%5 ) + self.getMatrixChar(self.getHeadIndex(index2) + (index2%5+1)%5 )
+        # got a square (horizon)
+        else:
+            ans = self.getMatrixChar(self.getHeadIndex(index1) + index2%5 ) + self.getMatrixChar(self.getHeadIndex(index2) + index1%5 )
+        return ans
 
     def encrypt(self):
-        self.putMatrix(self.plainTxt)
+        self.putMatrix(self.key)
         self.putMatrix(self.a2z)
-        
-        return self.matrix
-    
+        processedPlainTxt = self.processPlainTxt()
+        cipherTxt = ""
+        for index in range(math.floor(len(processedPlainTxt)/2)):
+            cipherTxt += self.playfairFunc( processedPlainTxt[index*2], processedPlainTxt[index*2+1] )
+        return cipherTxt
 
 class VernamEncryptor(BaseEncryptor):
     def encrypt(self):
