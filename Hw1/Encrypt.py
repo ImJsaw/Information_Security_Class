@@ -1,6 +1,5 @@
 import abc
 import sys
-import math
 
 CAESAR = 'caesar'
 PLAYFAIR = 'playfair'
@@ -85,8 +84,8 @@ class PlayfairEncryptor(BaseEncryptor):
         return self.matrix[index%25]
     
     #get the row head index in matrix
-    def getHeadIndex(self, index):
-        return math.floor(index/5)*5
+    def getHead(self, index):
+        return int(index/5)*5
 
     # func for single block
     def playfairFunc(self, char1, char2):
@@ -98,11 +97,11 @@ class PlayfairEncryptor(BaseEncryptor):
         if index1%5 == index2%5:
             ans = self.getMatrixChar(index1+5) + self.getMatrixChar(index2+5)
         # same row
-        elif math.floor(index1/5) == math.floor(index2/5):
-            ans = self.getMatrixChar(self.getHeadIndex(index1) + (index1%5+1)%5 ) + self.getMatrixChar(self.getHeadIndex(index2) + (index2%5+1)%5 )
+        elif int(index1/5) == int(index2/5):
+            ans = self.getMatrixChar(self.getHead(index1) + (index1%5+1)%5 ) + self.getMatrixChar(self.getHead(index2) + (index2%5+1)%5 )
         # got a square (horizon)
         else:
-            ans = self.getMatrixChar(self.getHeadIndex(index1) + index2%5 ) + self.getMatrixChar(self.getHeadIndex(index2) + index1%5 )
+            ans = self.getMatrixChar(self.getHead(index1) + index2%5 ) + self.getMatrixChar(self.getHead(index2) + index1%5 )
         return ans
 
     def encrypt(self):
@@ -110,17 +109,37 @@ class PlayfairEncryptor(BaseEncryptor):
         self.putMatrix(self.a2z)
         processedPlainTxt = self.processPlainTxt()
         cipherTxt = ""
-        for index in range(math.floor(len(processedPlainTxt)/2)):
+        for index in range(int(len(processedPlainTxt)/2)):
             cipherTxt += self.playfairFunc( processedPlainTxt[index*2], processedPlainTxt[index*2+1] )
         return cipherTxt
 
 class VernamEncryptor(BaseEncryptor):
     def encrypt(self):
-        pass
+        self.key += self.plainTxt
+        cipherTxt = ''
+        for index in range(len(self.plainTxt)):
+            index = char2int(self.plainTxt[index]) + char2int(self.key[index])
+            cipherTxt += int2char(index)
+        return cipherTxt.upper()
 
 class RowEncryptor(BaseEncryptor):
+    # rearrange index for easier handle data
+    def rowIndex(self):
+        order = []
+        for num in range(len(self.key)+1):
+            for index in range(len(self.key)):
+                if(int(self.key[index]) == num):
+                    order.append(index)
+        return order
+    
     def encrypt(self):
-        pass
+        cipherTxt = ''
+        keyLen = len(self.key)
+        rowIndex = self.rowIndex()
+        for index in range(keyLen):
+            for row in range(int(len(self.plainTxt)/keyLen-0.00001)+1):
+                cipherTxt += plainTxt[row * keyLen + rowIndex[index]]
+        return cipherTxt
 
 class RailFenceEncryptor(BaseEncryptor):
     def encrypt(self):
