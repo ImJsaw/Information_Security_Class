@@ -19,12 +19,6 @@ def int2char(i):
     index = (i+26)%26 + ord('a')
     return chr(index)
 
-
-
-
-class WrongInputException(Exception):
-    pass
-
 class BaseEncryptor:
     def __init__(self, key: str, plainTxt: str):
         self.key = key
@@ -37,7 +31,8 @@ class BaseEncryptor:
 class CaesarEncryptor(BaseEncryptor):
     def encrypt(self):
         if int(self.key) < 0 or int(self.key) > 26:
-            raise WrongInputException()
+            print("你想幹嘛...")
+            return
         cipherTxt = ''
         for c in self.plainTxt:
             #change to int, then back to char after calc
@@ -142,8 +137,38 @@ class RowEncryptor(BaseEncryptor):
         return cipherTxt
 
 class RailFenceEncryptor(BaseEncryptor):
+    rootAry = []
+    def processPlainTxt(self):
+        ans = ""
+        for char in self.plainTxt:
+            # only care alphabet
+            if char.isalpha():
+                ans += char.upper()
+        return ans
+
     def encrypt(self):
-        pass
+        if int(self.key) < 0:
+            print("你想幹嘛...")
+            return
+        cipherTxt = ''
+        # generate ary
+        for index in range(int(self.key)):
+            self.rootAry.append([])
+        curRow = 0
+        curWay = 1
+        processedPlainTxt = self.processPlainTxt()
+        for index in range(len(processedPlainTxt)):
+            self.rootAry[curRow].append(processedPlainTxt[index])
+            # mext fence
+            if curRow <= 0:
+                curWay = 1
+            if curRow >= int(self.key)-1:
+                curWay = -1
+            curRow += curWay
+        for row in range(int(self.key)):
+            for index in range(len(self.rootAry[row])):
+                cipherTxt += self.rootAry[row][index]
+        return cipherTxt
 
 if cipher == CAESAR:
     cipherTxt = CaesarEncryptor(key=sys.argv[2], plainTxt=sys.argv[3]).encrypt()
@@ -161,8 +186,6 @@ elif cipher == RAIL_FENCE:
     cipherTxt = RailFenceEncryptor(key=sys.argv[2], plainTxt=sys.argv[3]).encrypt()
 
 else:
-    print("w")
-    raise WrongInputException()
+    print("你想幹嘛...")
 
 print(cipherTxt)
-
