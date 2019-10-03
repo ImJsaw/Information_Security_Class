@@ -113,7 +113,7 @@ class VernamEncryptor(BaseEncryptor):
         self.key += self.plainTxt
         cipherTxt = ''
         for index in range(len(self.plainTxt)):
-            index = char2int(self.plainTxt[index]) + char2int(self.key[index])
+            index = char2int(self.plainTxt[index]) ^ char2int(self.key[index])
             cipherTxt += int2char(index)
         return cipherTxt.upper()
 
@@ -159,7 +159,7 @@ class RailFenceEncryptor(BaseEncryptor):
         processedPlainTxt = self.processPlainTxt()
         for index in range(len(processedPlainTxt)):
             self.rootAry[curRow].append(processedPlainTxt[index])
-            # mext fence
+            # next fence
             if curRow <= 0:
                 curWay = 1
             if curRow >= int(self.key)-1:
