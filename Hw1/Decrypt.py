@@ -116,13 +116,46 @@ class PlayfairDecryptor(BaseDecryptor):
 
 
 class VernamDecryptor(BaseDecryptor):
+    def __init__(self, key: str, cipher_text: str):
+        super(VernamDecryptor, self).__init__(key, cipher_text)
+
     def decrypt(self) -> str:
-        pass
+        origin_str = ''
+        self.key = self.key.lower()
+        len_key = len(self.key)
+        count = 0
+        for char in self.cipher_text:
+            if count >= len_key:
+                self.key += origin_str[count - len_key]
+            origin_str += self._get_origin_char(text_char=char, key_char=self.key[count])
+            count += 1
+        return origin_str.lower()
+
+    def _get_origin_char(self, text_char, key_char) -> str:
+        text = ord(text_char) - ord('a')
+        key = ord(key_char) - ord('a')
+        origin_char = chr(ord('a') + (text ^ key))
+
+        return origin_char
 
 
 class RowDecryptor(BaseDecryptor):
     def decrypt(self) -> str:
-        pass
+        num_of_row = len(self.cipher_text) // len(self.key)
+
+        origin_str_list = []
+        for char in self.key:
+            col_no = int(char)
+            str_begin = (col_no - 1) * num_of_row
+            str_end = col_no * num_of_row
+            origin_str_list.append(self.cipher_text[str_begin:str_end])
+
+        origin_str = ''
+        for i in range(num_of_row):
+            for s in origin_str_list:
+                origin_str += s[i]
+
+        return origin_str
 
 
 class RailFenceDecryptor(BaseDecryptor):
