@@ -133,7 +133,10 @@ class RowEncryptor(BaseEncryptor):
         rowIndex = self.rowIndex()
         for index in range(keyLen):
             for row in range(int(len(self.plainTxt)/keyLen-0.00001)+1):
-                cipherTxt += plainTxt[row * keyLen + rowIndex[index]]
+                if row * keyLen + rowIndex[index] >= len(plainTxt):
+                    cipherTxt += "*"
+                else:
+                    cipherTxt += plainTxt[row * keyLen + rowIndex[index]]
         return cipherTxt
 
 class RailFenceEncryptor(BaseEncryptor):
