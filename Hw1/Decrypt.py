@@ -159,8 +159,43 @@ class RowDecryptor(BaseDecryptor):
 
 
 class RailFenceDecryptor(BaseDecryptor):
+    def __init__(self, key: str, cipher_text: str):
+        super(RailFenceDecryptor, self).__init__(key, cipher_text)
+        self.key = key
+
     def decrypt(self) -> str:
-        pass
+        cycle = (int(self.key) * 2 - 2)
+        num_of_cycle = len(self.cipher_text) // cycle
+        remainder_of_cycle = len(self.cipher_text) % cycle
+        cycle_list = [num_of_cycle + 1] * remainder_of_cycle + [num_of_cycle] * (cycle - remainder_of_cycle)
+        for i in range(int(self.key) - 2):
+            cycle_list[1 + i] += cycle_list.pop(-1 - i)
+
+        diff_list = [0]
+        for i in range(len(cycle_list) - 1):
+            diff_list.append(cycle_list[i])
+            diff_list[i + 1] += diff_list[i]
+
+        origin_str = ''
+        for i in range(len(self.cipher_text)):
+            row_ptr = i % cycle
+
+            if row_ptr == 0:
+                index = i // cycle
+                origin_str += self.cipher_text[index]
+
+            elif row_ptr == int(self.key) - 1:
+                index = i // cycle + diff_list[row_ptr]
+                origin_str += self.cipher_text[index]
+
+            elif row_ptr > int(self.key) - 1:
+                index = (i // cycle) * 2 + 1 + diff_list[(int(self.key) - 1) * 2 - row_ptr]
+                origin_str += self.cipher_text[index]
+            else:
+                index = (i // cycle) * 2 + diff_list[row_ptr]
+                origin_str += self.cipher_text[index]
+
+        return origin_str
 
 
 print(f'cipher:{sys.argv[1]}, key:{sys.argv[2]}, cipher_text:{sys.argv[3]}')
