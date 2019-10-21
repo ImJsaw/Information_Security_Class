@@ -1,96 +1,298 @@
 import sys
-#  1. 
-#       ip
-#  2. 
-#       16 time
-#       L(n) = R(n-1)
-#       R(n) = L(n-1) XOR f( R(n-1), k(n-1) )
-#  3.
-#       ip(-1)
-#
+from typing import List
 
-# get input arg
-key = sys.argv[1]
-plainTxt = sys.argv[2]
+FP_Matrix = [
+    40, 8, 48, 16, 56, 24, 64, 32,
+    39, 7, 47, 15, 55, 23, 63, 31,
+    38, 6, 46, 14, 54, 22, 62, 30,
+    37, 5, 45, 13, 53, 21, 61, 29,
+    36, 4, 44, 12, 52, 20, 60, 28,
+    35, 3, 43, 11, 51, 19, 59, 27,
+    34, 2, 42, 10, 50, 18, 58, 26,
+    33, 1, 41, 9, 49, 17, 57, 25,
+]
 
-Ematrix = [32, 1, 2, 3, 4, 5,\
-            4, 5, 6, 7, 8, 9,\
-            8, 9,10,11,12,13,\
-            12,13,14,15,16,17,\
-            16,17,18,19,20,21,\
-            20,21,22,23,24,25,\
-            24,25,26,27,28,29,\
-            28,29,30,31,32, 1]
+IP_Matrix = [
+    58, 50, 42, 34, 26, 18, 10, 2,
+    60, 52, 44, 36, 28, 20, 12, 4,
+    62, 54, 46, 38, 30, 22, 14, 6,
+    64, 56, 48, 40, 32, 24, 16, 8,
+    57, 49, 41, 33, 25, 17, 9, 1,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    61, 53, 45, 37, 29, 21, 13, 5,
+    63, 55, 47, 39, 31, 23, 15, 7,
+]
 
-ipMatrix = [58,50,42,34,26,18,10,2,\
-            60,52,44,36,28,20,12,4,\
-            62,54,46,38,30,22,14,6,\
-            64,56,48,40,32,24,16,8,\
-            57,49,41,33,25,17, 9,1,\
-            59,51,43,35,27,19,11,3,\
-            61,53,45,37,29,21,13,5,\
-            63,55,47,39,31,23,15,7]
+PC_1_Matrix = [
+    57, 49, 41, 33, 25, 17, 9, 1,
+    58, 50, 42, 34, 26, 18, 10, 2,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    60, 52, 44, 36, 63, 55, 47, 39,
+    31, 23, 15, 7, 62, 54, 46, 38,
+    30, 22, 14, 6, 61, 53, 45, 37,
+    29, 21, 13, 5, 28, 20, 12, 4,
+]
 
-Pmatrix = [16, 7,20,21,29,12,28,17,\
-            1,15,23,26, 5,18,31,10,\
-            2, 8,24,14,32,27, 3, 9,\
-           19,13,30, 6,22,11, 4,25]
+PC_2_Matrix = [
+    14, 17, 11, 24, 1, 5,
+    3, 28, 15, 6, 21, 10,
+    23, 19, 12, 4, 26, 8,
+    16, 7, 27, 20, 13, 2,
+    41, 52, 31, 37, 47, 55,
+    30, 40, 51, 45, 33, 48,
+    44, 49, 39, 56, 34, 53,
+    46, 42, 50, 36, 29, 32,
+]
 
-pc1Matrix = [57,49,41,33,25,17, 9, 1,\
-             58,50,42,34,26,18,10, 2,\
-             59,51,43,35,27,19,11, 3,\
-             60,52,44,36,63,55,47,39,\
-             31,23,15, 7,62,54,46,38,\
-             30,22,14, 6,61,53,45,37,\
-             29,21,13, 5,28,20,12, 4]
+E_Matrix = [
+    32, 1, 2, 3, 4, 5,
+    4, 5, 6, 7, 8, 9,
+    8, 9, 10, 11, 12, 13,
+    12, 13, 14, 15, 16, 17,
+    16, 17, 18, 19, 20, 21,
+    20, 21, 22, 23, 24, 25,
+    24, 25, 26, 27, 28, 29,
+    28, 29, 30, 31, 32, 1,
+]
 
-pc2Matrix = [14,17,11,24, 1, 5,\
-              3,28,15, 6,21,10,\
-             23,19,12, 4,26, 8,\
-             16, 7,27,20,13, 2,\
-             41,52,31,37,47,55,\
-             30,40,51,45,33,48,\
-             44,49,39,56,34,53,\
-             46,42,50,36,29,32]
+S_Box_1 = [
+    14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
+    0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
+    4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0,
+    15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13,
+]
 
-def matrixTransform( oriTxt, matrix ):
-    result = []
-    for index in matrix:
-        result.append(oriTxt[index-1])
-    return result
+S_Box_2 = [
+    15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10,
+    3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5,
+    0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15,
+    13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9,
+]
+
+S_Box_3 = [
+    10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8,
+    13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1,
+    13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7,
+    1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12,
+]
+
+S_Box_4 = [
+    7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15,
+    13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9,
+    10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4,
+    3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14,
+]
+
+S_Box_5 = [
+    2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9,
+    14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6,
+    4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14,
+    11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3,
+]
+
+S_Box_6 = [
+    12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11,
+    10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8,
+    9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6,
+    4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13,
+]
+
+S_Box_7 = [
+    4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1,
+    13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6,
+    1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2,
+    6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12,
+]
+
+S_Box_8 = [
+    13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7,
+    1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2,
+    7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8,
+    2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11,
+]
+
+P_Box = [
+    16, 7, 20, 21, 29, 12, 28, 17,
+    1, 15, 23, 26, 5, 18, 31, 10,
+    2, 8, 24, 14, 32, 27, 3, 9,
+    19, 13, 30, 6, 22, 11, 4, 25,
+]
 
 
-def f(R,key):
-    #extend R to 48 bit
-    extendedTxt = matrixTransform( R, Ematrix )
-    # xor with key
-    for index in range(0,48):
-        extendedTxt[index] = extendedTxt ^ key[index]
-    #s-box
-    #TODO:
-    #get sBoxResult
-    sBoxResult = []
+class Key:
+    def __init__(self, hex_key: str):
+        self.key = self._hex_key_to_binary_key(hex_key)
+        self.key_offset = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+        self.offset_time = 0
 
-    #p-box
-    fResult = matrixTransform( sBoxResult, Pmatrix )
-    return fResult
+    def offset(self):
+        c, d = self._divide_into_two_part()
 
-# get key
-def k(n):
-    pc1KEY = matrixTransform(key, pc1Matrix)
-    offset = [1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1]
-    for index in range(0,28):
-        #   c0
-        pc1KEY[index] = pc1KEY[(index+ offset[n])%28]
-        #   d0
-        pc1KEY[index+28] = pc1KEY[28+ (index+ offset[n])%28]
-    kn = matrixTransform(pc1KEY, pc2Matrix)
-    return kn
+        offset_no = self.key_offset[self.offset_time]
+        while offset_no != 0:
+            char = c.pop(0)
+            c.append(char)
+            char = d.pop(0)
+            d.append(char)
+            offset_no -= 1
 
-######  main   ########
+        self.key = c
+        self.key.extend(d)
+        self.offset_time += 1
 
-# get 64bit bin plainTxt
-plainTxtBin = bin(int(key,16)).strip("0b").zfill(64)
+    def _divide_into_two_part(self):
+        c = list(self.key[:28])
+        d = list(self.key[28:])
+        return c, d
 
-# get string after ip matrix
-ipResult = matrixTransform(plainTxtBin, ipMatrix)
+    def get_pc_2(self):
+        result_key_matrix = []
+        for index in PC_2_Matrix:
+            result_key_matrix.append(self.key[index - 1])
+
+        return result_key_matrix
+
+    def turn_to_pc_1(self):
+        result_key_matrix = []
+        for index in PC_1_Matrix:
+            result_key_matrix.append(self.key[index - 1])
+
+        self.key = result_key_matrix
+
+    @staticmethod
+    def _hex_key_to_binary_key(hex_key):
+        hex_int = int(hex_key, 16)
+        return '{0:b}'.format(hex_int)
+
+
+class PlainText:
+    def __init__(self, hex_cipher_text: str):
+        self.plain_text = self._hex_plain_to_binary_plain(hex_cipher_text)
+
+    def turn_to_fp(self):
+        result_cipher_text_matrix = []
+        for index in FP_Matrix:
+            result_cipher_text_matrix.append(self.plain_text[index - 1])
+
+        self.plain_text = result_cipher_text_matrix
+
+    def set_plain_text_by(self, left, right):
+        result_cipher_text_matrix = []
+        for i in range(0, 64, 4):
+            result_cipher_text_matrix.extend(left[i:i + 4])
+            result_cipher_text_matrix.extend(right[i:i + 4])
+
+        self.plain_text = result_cipher_text_matrix
+
+    def divide_into_left_and_right(self):
+        left = []
+        right = []
+        for index, c in enumerate(self.plain_text):
+            if index % 8 < 4:
+                left.append(c)
+            else:
+                right.append(c)
+
+        return left, right
+
+    def turn_to_ip(self):
+        result_cipher_text_matrix = []
+        for index in IP_Matrix:
+            result_cipher_text_matrix.append(self.plain_text[index - 1])
+
+        self.plain_text = result_cipher_text_matrix
+
+    @staticmethod
+    def _hex_plain_to_binary_plain(hex_cipher_text):
+        hex_int = int(hex_cipher_text, 16)
+        return '{0:b}'.format(hex_int).zfill(64)
+
+
+class Encryptor:
+    def __init__(self, hex_key: str, hex_plain_text: str):
+        self.key = Key(hex_key)
+        self.plain_text = PlainText(hex_plain_text)
+
+    def encrypt(self):
+        # init
+        self.key.turn_to_pc_1()
+        self.plain_text.turn_to_ip()
+
+        for i in range(16):
+            self.key.offset()
+
+            k = self.key.get_pc_2()
+            l, r = self.plain_text.divide_into_left_and_right()
+            f = self._f_function(r, k)
+            result = self._do_xor(l, f)
+
+            self.plain_text.set_plain_text_by(r, result)
+
+        self.plain_text.turn_to_fp()
+        text_int = int(''.join(self.plain_text.plain_text), 2)
+        return hex(text_int)
+
+    def _f_function(self, right, k) -> List:
+        right = self._expanse(right)
+        result = self._do_xor(right, k)
+        result = self._s_box(result)
+        result = self._p_box(result)
+
+        return result
+
+    @staticmethod
+    def _p_box(result):
+        result_matrix = []
+        for index in P_Box:
+            result_matrix.append(result[index - 1])
+
+        return result_matrix
+
+    def _s_box(self, result):
+        result_list = []
+        result_list.extend(self._get_s_box_output(result[:6], S_Box_1))
+        result_list.extend(self._get_s_box_output(result[6:12], S_Box_2))
+        result_list.extend(self._get_s_box_output(result[12:18], S_Box_3))
+        result_list.extend(self._get_s_box_output(result[18:24], S_Box_4))
+        result_list.extend(self._get_s_box_output(result[24:30], S_Box_5))
+        result_list.extend(self._get_s_box_output(result[30:36], S_Box_6))
+        result_list.extend(self._get_s_box_output(result[36:42], S_Box_7))
+        result_list.extend(self._get_s_box_output(result[42:], S_Box_8))
+
+        return result_list
+
+    @staticmethod
+    def _get_s_box_output(ip, s_box_matrix) -> List:
+        row_no = int(f'{ip[0]}{ip[5]}', 2)
+        col_no = int(''.join(ip[1:5]), 2)
+
+        output_no = s_box_matrix[row_no * 16 + col_no]
+        return list('{0:b}'.format(output_no).zfill(4))
+
+    @staticmethod
+    def _expanse(left) -> List:
+        result_left_text_matrix = []
+        for index in E_Matrix:
+            result_left_text_matrix.append(left[index - 1])
+
+        return result_left_text_matrix
+
+    @staticmethod
+    def _do_xor(a, b) -> List:
+        result_list = []
+        for index in range(len(a)):
+            if a[index] == b[index]:
+                result_list.append('0')
+            else:
+                result_list.append('1')
+
+        return result_list
+
+
+if __name__ == '__main__':
+    key = sys.argv[1]
+    plain_text = sys.argv[2]
+    print(key, plain_text)
+
+    encryptor = Encryptor(hex_key=key, hex_plain_text=plain_text)
+    print(encryptor.encrypt())
