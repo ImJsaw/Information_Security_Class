@@ -176,22 +176,16 @@ class PlainText:
 
         self.plain_text = result_cipher_text_matrix
 
-    def set_plain_text_by(self, left, right):
+    def set_plain_text_by(self, left: List, right: List):
         result_cipher_text_matrix = []
-        for i in range(0, 64, 4):
-            result_cipher_text_matrix.extend(left[i:i + 4])
-            result_cipher_text_matrix.extend(right[i:i + 4])
+        result_cipher_text_matrix.extend(left)
+        result_cipher_text_matrix.extend(right)
 
         self.plain_text = result_cipher_text_matrix
 
     def divide_into_left_and_right(self):
-        left = []
-        right = []
-        for index, c in enumerate(self.plain_text):
-            if index % 8 < 4:
-                left.append(c)
-            else:
-                right.append(c)
+        left = self.plain_text[:32]
+        right = self.plain_text[32:]
 
         return left, right
 
@@ -226,11 +220,14 @@ class Encryptor:
             f = self._f_function(r, k)
             result = self._do_xor(l, f)
 
-            self.plain_text.set_plain_text_by(r, result)
+            if i == 15:
+                self.plain_text.set_plain_text_by(result, r)
+            else:
+                self.plain_text.set_plain_text_by(r, result)
 
         self.plain_text.turn_to_fp()
         text_int = int(''.join(self.plain_text.plain_text), 2)
-        return hex(text_int)
+        return hex(text_int).upper()
 
     def _f_function(self, right, k) -> List:
         right = self._expanse(right)

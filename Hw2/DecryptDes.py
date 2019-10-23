@@ -1,5 +1,5 @@
 import sys
-from typing import List
+from typing import List, Tuple
 
 FP_Matrix = [
     40, 8, 48, 16, 56, 24, 64, 32,
@@ -177,22 +177,16 @@ class CipherText:
 
         self.cipher_text = result_cipher_text_matrix
 
-    def set_cipher_text_by(self, left, right):
+    def set_cipher_text_by(self, left: List, right: List):
         result_cipher_text_matrix = []
-        for i in range(0, 64, 4):
-            result_cipher_text_matrix.extend(left[i:i + 4])
-            result_cipher_text_matrix.extend(right[i:i + 4])
+        result_cipher_text_matrix.extend(left)
+        result_cipher_text_matrix.extend(right)
 
         self.cipher_text = result_cipher_text_matrix
 
-    def divide_into_left_and_right(self):
-        left = []
-        right = []
-        for index, c in enumerate(self.cipher_text):
-            if index % 8 < 4:
-                left.append(c)
-            else:
-                right.append(c)
+    def divide_into_left_and_right(self) -> Tuple[List, List]:
+        left = self.cipher_text[:32]
+        right = self.cipher_text[32:]
 
         return left, right
 
@@ -220,13 +214,18 @@ class Decryptor:
         self.cipher_text.turn_to_ip()
 
         for i in range(16):
+            self.key.offset()
+
             k = self.key.get_pc_2()
             l, r = self.cipher_text.divide_into_left_and_right()
             f = self._f_function(l, k)
             result = self._do_xor(r, f)
 
-            self.cipher_text.set_cipher_text_by(l, result)
-            self.key.offset()
+            if i == 15:
+                self.cipher_text.set_cipher_text_by(result, l)
+            else:
+                self.cipher_text.set_cipher_text_by(l, result)
+            # self.cipher_text.set_cipher_text_by(l, result)
 
         self.cipher_text.turn_to_fp()
         text_int = int(''.join(self.cipher_text.cipher_text), 2)
