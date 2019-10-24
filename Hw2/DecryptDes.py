@@ -185,8 +185,9 @@ class CipherText:
         self.cipher_text = result_cipher_text_matrix
 
     def divide_into_left_and_right(self) -> Tuple[List, List]:
-        left = self.cipher_text[:32]
-        right = self.cipher_text[32:]
+        assert isinstance(self.cipher_text, List)
+        left = self.cipher_text[32:]
+        right = self.cipher_text[:32]
 
         return left, right
 
