@@ -72,8 +72,9 @@ class DecryptAES:
             block = plain_text[block_index: block_index + AES.block_size]
             plain_block = cipher.decrypt(block)
 
+            # xor with prev cipher txt
             final_block = byte_xor(plain_block, prev_ct)
-            prev_ct = final_block
+            prev_ct = block
             plainTxt += final_block
 
             block_index += AES.block_size
@@ -97,14 +98,15 @@ CBC = 'CBC'
 
 if __name__ == '__main__':
     
-    print(os.getcwd())
-    key = input('輸入Key: ')
     mode = input('輸入加密的Mode: ')
     #open cipher img
     im = Image.open('./Hw3/result.ppm')
     img_byte_array = io.BytesIO()
     im.save(img_byte_array, format=im.format)
     img_byte_array = img_byte_array.getvalue()
+    
+    with open('./Hw3/key.txt', 'rb') as f:
+        key = f.read()
 
     if mode == ECB:
         decrypt_aes = DecryptAES(decrypt_mode=ECB, key=key)

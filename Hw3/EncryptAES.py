@@ -11,7 +11,7 @@ class EncryptAES:
         self._mode = encrypt_mode
         self._key = Random.new().read(AES.block_size)
         self._iv = self._key
-        with open('./key.txt', 'wb') as f:
+        with open('./Hw3/key.txt', 'wb') as f:
             f.write(self._key)
 
     def encrypt(self, plain_text):
@@ -47,12 +47,12 @@ class EncryptAES:
 
             block_index += AES.block_size
 
-        with open("./result.ppm", "wb") as f:
+        with open("./Hw3/result.ppm", "wb") as f:
             f.write(cipher_text)
 
-        ppm_picture = './result.ppm'
+        ppm_picture = './Hw3/result.ppm'
         output_img = Image.open(ppm_picture)
-        output_img.save('./result.png', 'png')
+        output_img.save('./Hw3/result.png', 'png')
 
     def _cbc_encrypt(self, plain_text):
         count = 0
@@ -85,12 +85,12 @@ class EncryptAES:
 
             block_index += AES.block_size
 
-        with open("./result.ppm", "wb") as f:
+        with open("./Hw3/result.ppm", "wb") as f:
             f.write(cipher_text)
 
-        ppm_picture = './result.ppm'
+        ppm_picture = './Hw3/result.ppm'
         output_img = Image.open(ppm_picture)
-        output_img.save('./result.png', 'png')
+        output_img.save('./Hw3/result.png', 'png')
 
 
 def byte_xor(ba1, ba2):
@@ -116,7 +116,3 @@ if __name__ == '__main__':
     elif mode == CBC:
         encrypt_aes = EncryptAES(encrypt_mode=CBC)
         encrypt_aes.encrypt(plain_text=img_byte_array)
-
-    # open key
-    # with open('./key.txt', 'rb') as f:
-    #     text = f.read()
