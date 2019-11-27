@@ -1,4 +1,5 @@
 import io
+from pathlib import Path
 
 from Crypto import Random
 from Crypto.Cipher import AES
@@ -10,7 +11,8 @@ class EncryptAES:
         self._mode = encrypt_mode
         self._key = Random.new().read(AES.block_size)
         self._iv = self._key
-        print('[**] Random key is', self._key)
+        with open('./key.txt', 'wb') as f:
+            f.write(self._key)
 
     def encrypt(self, plain_text):
         if self._mode == ECB:
@@ -102,7 +104,8 @@ CBC = 'CBC'
 if __name__ == '__main__':
     mode = input('輸入加密的Mode: ')
 
-    im = Image.open('./mypppm.ppm')
+    path = Path(__file__).parent / 'mypppm.ppm'
+    im = Image.open(path)
     img_byte_array = io.BytesIO()
     im.save(img_byte_array, format=im.format)
     img_byte_array = img_byte_array.getvalue()
@@ -113,3 +116,7 @@ if __name__ == '__main__':
     elif mode == CBC:
         encrypt_aes = EncryptAES(encrypt_mode=CBC)
         encrypt_aes.encrypt(plain_text=img_byte_array)
+
+    # open key
+    # with open('./key.txt', 'rb') as f:
+    #     text = f.read()
