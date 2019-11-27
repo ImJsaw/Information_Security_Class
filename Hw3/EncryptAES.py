@@ -1,4 +1,5 @@
 import io
+import sys
 from pathlib import Path
 
 from Crypto import Random
@@ -21,8 +22,8 @@ class EncryptAES:
             self._ecb_encrypt(plain_text=plain_text)
         elif self._mode == CBC:
             self._cbc_encrypt(plain_text=plain_text)
-        elif self._mode == CBC_F:
-            self._cbc_feedback_encrypt(plain_text=plain_text)
+        elif self._mode == CUSTOM:
+            self._custom_encrypt(plain_text=plain_text)
 
     def _ecb_encrypt(self, plain_text):
         count = 0
@@ -86,12 +87,14 @@ class EncryptAES:
 
         self._write_image(cipher_text)
 
-    def _cbc_feedback_encrypt(self, plain_text):
+    def _custom_encrypt(self, plain_text):
         count = 0
         count_newline = 0
         cipher = AES.new(self._key, AES.MODE_ECB)
         cipher_text = b''
         prev_ct = self._iv
+        # cast key to bin
+        binKey = bin(int.from_bytes(self._key, byteorder=sys.byteorder))[2:]
 
         # 把不需要加密的部分取出
         while count_newline < 3:
@@ -112,7 +115,12 @@ class EncryptAES:
             final_block = byte_xor(block, prev_ct)
 
             cipher_block = cipher.encrypt(final_block)
-            prev_ct = cipher_block[1:] + b'\x00'
+
+            if(binKey[int((block_index/AES.block_size)%len(binKey))] == '0'):
+                prev_ct = cipher_block
+            else:
+                prev_ct = cipher_block[1:] + b'\x00'
+
             cipher_text += cipher_block
 
             block_index += AES.block_size
@@ -138,7 +146,7 @@ def byte_xor(ba1, ba2):
 
 ECB = 'ECB'
 CBC = 'CBC'
-CBC_F = 'CBC_F'
+CUSTOM = 'CST'
 
 
 if __name__ == '__main__':
@@ -156,6 +164,6 @@ if __name__ == '__main__':
     elif mode == CBC:
         encrypt_aes = EncryptAES(encrypt_mode=CBC)
         encrypt_aes.encrypt(plain_text=img_byte_array)
-    elif mode == CBC_F:
-        encrypt_aes = EncryptAES(encrypt_mode=CBC_F)
+    elif mode == CUSTOM:
+        encrypt_aes = EncryptAES(encrypt_mode=CUSTOM)
         encrypt_aes.encrypt(plain_text=img_byte_array)

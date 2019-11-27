@@ -1,4 +1,5 @@
 import io
+import sys
 from pathlib import Path
 
 from Crypto.Cipher import AES
@@ -10,15 +11,14 @@ class DecryptAES:
         self._mode = decrypt_mode
         self._key = key
         self._iv = self._key
-        print('[**] Random key is', self._key)
 
     def decrypt(self, cipher_text):
         if self._mode == ECB:
             self._ecb_decrypt(cipher_text=cipher_text)
         elif self._mode == CBC:
             self._cbc_decrypt(cipher_text=cipher_text)
-        elif self._mode == CBC_F:
-            self._cbc_feedback_decrypt(cipher_text=cipher_text)
+        elif self._mode == CUSTOM:
+            self._custom_decrypt(cipher_text=cipher_text)
 
     def _ecb_decrypt(self, cipher_text):
         count = 0
@@ -81,12 +81,14 @@ class DecryptAES:
             block_index += AES.block_size
         self.writeDecryptImg(plainTxt)
 
-    def _cbc_feedback_decrypt(self, cipher_text):
+    def _custom_decrypt(self, cipher_text):
         count = 0
         count_newline = 0
         cipher = AES.new(self._key, AES.MODE_ECB)
         plainTxt = b''
         prev_ct = self._iv
+        # cast key to bin
+        binKey = bin(int.from_bytes(self._key, byteorder=sys.byteorder))[2:]
 
         # 把不需要加密的部分取出
         while count_newline < 3:
@@ -108,7 +110,10 @@ class DecryptAES:
 
             # xor with prev cipher txt
             final_block = byte_xor(plain_block, prev_ct)
-            prev_ct = block[1:] + b'\x00'
+            if(binKey[int((block_index/AES.block_size)%len(binKey))] == '0'):
+                prev_ct = block
+            else:
+                prev_ct = block[1:] + b'\x00'
             plainTxt += final_block
 
             block_index += AES.block_size
@@ -132,7 +137,7 @@ def byte_xor(ba1, ba2):
 
 ECB = 'ECB'
 CBC = 'CBC'
-CBC_F = 'CBC_F'
+CUSTOM = 'CST'
 
 
 if __name__ == '__main__':
@@ -155,6 +160,6 @@ if __name__ == '__main__':
     elif mode == CBC:
         decrypt_aes = DecryptAES(decrypt_mode=CBC, key=key)
         decrypt_aes.decrypt(cipher_text=img_byte_array)
-    elif mode == CBC_F:
-        decrypt_aes = DecryptAES(decrypt_mode=CBC_F, key=key)
+    elif mode == CUSTOM:
+        decrypt_aes = DecryptAES(decrypt_mode=CUSTOM, key=key)
         decrypt_aes.decrypt(cipher_text=img_byte_array)
