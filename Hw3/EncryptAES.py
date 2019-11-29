@@ -45,6 +45,10 @@ class EncryptAES:
 
         # encrypt
         plain_text = plain_text[count:]
+
+        while len(plain_text) % AES.block_size != 0:
+            plain_text += b'\x00'
+
         while block_index < len(plain_text):
             block = plain_text[block_index: block_index + AES.block_size]
             cipher_block = cipher.encrypt(block)
@@ -75,6 +79,10 @@ class EncryptAES:
 
         # encrypt
         plain_text = plain_text[count:]
+
+        while len(plain_text) % AES.block_size != 0:
+            plain_text += b'\x00'
+
         while block_index < len(plain_text):
             block = plain_text[block_index: block_index + AES.block_size]
             final_block = byte_xor(block, prev_ct)
@@ -110,6 +118,10 @@ class EncryptAES:
 
         # encrypt
         plain_text = plain_text[count:]
+
+        while len(plain_text) % AES.block_size != 0:
+            plain_text += b'\x00'
+
         while block_index < len(plain_text):
             block = plain_text[block_index: block_index + AES.block_size]
             final_block = byte_xor(block, prev_ct)
