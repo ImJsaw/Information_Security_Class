@@ -55,6 +55,25 @@ def randomPrime():
             primes.append(i*2+1)
     return random.choice(primes)
 
+#generate 512bit prime
+def randomBigPrime():
+    while 1 == 1:
+        #get random 512bit big odd number
+        bigNum = "1"
+        for _ in range(510):
+            if random.random() > 0.5:
+                bigNum += "1"
+            else:
+                bigNum += "0"
+        bigNum += "1"
+        bigNum = int(bigNum)
+        #test
+        if miller_rabin_test(bigNum, 20) == True:
+            return bigNum
+        #not prime, do again until find
+        continue
+    print("WTF???")
+
 #not boost yet
 def isPrime(primeTesting):
     #test every num < test^0.5
@@ -87,7 +106,8 @@ def miller_rabin_test(n, k):
     r = n-1
     u = 0
     while r % 2 == 0:
-        r /= 2
+        #need to use // or overflow..
+        r //= 2
         u += 1
     #repeat k time test
     for _ in range(k):
@@ -108,7 +128,9 @@ def miller_rabin_test(n, k):
         if passFlag == True:
             continue
         #test fail. composite confirm
+        print("test fail, witness",witness)
         return False
+    print("find!")
     return True
 
 #找到最小互質
@@ -128,8 +150,12 @@ def findInverse( base , mod ):
     return 0
 
 #test zone
-
-#quit()
+while 1== 1:
+        
+    i = int(input("input miller"))
+    miller_rabin_test(i,5)
+#randomBigPrime()
+quit()
 ##
 
 mode = input('輸入動作代碼 1/加密 2/解密 :  ')
