@@ -32,7 +32,8 @@ def encrypt():
     x = input("input x : ")
     #y = x^e % n
     ##  y = x ^ (e%phi_n)  % n
-    y = ( int(x) ** (e % phi_n) ) % n
+    y = square_and_multiply( int(x), e%phi_n, n)
+    #y = ( int(x) ** (e % phi_n) ) % n
     print("y : ",y)
     print("n : ",n)
     print("d : ",d)
@@ -46,24 +47,25 @@ def decrypt():
     d = int( input("input d : ") )
     #x = y^d % n
     ##  x = y ^ (d%phi_n)  % n
-    x = ( y ** d ) % n
+    x = square_and_multiply(y,d,n)
+    #x = ( y ** d ) % n
     print("x : ",x)
     return
 
-#generate 2 513bit prime ==> 1025 bit n
+#generate 2 512bit prime ==> 1024 bit n
 def randomBigPrime():
     while 1 == 1:
-        #get random 513bit big odd number
+        #get random 512bit big odd number
         bigNum = "1"
-        for _ in range(511):
+        for _ in range(510):
             if random.random() > 0.5:
                 bigNum += "1"
             else:
                 bigNum += "0"
         bigNum += "1"
-        bigNum = int(bigNum)
+        bigNum = int(bigNum,2)
         #test
-        if miller_rabin_test(bigNum, 20) == True:
+        if miller_rabin_test(bigNum, 300) == True:
             return bigNum
         #not prime, do again until find
         continue
@@ -85,10 +87,6 @@ def square_and_multiply(base, exp, mod):
 
 # test n for k times
 def miller_rabin_test(n, k):
-    if n == 2:
-        return True
-    if n%2 == 0 :
-        return False
     #rewrite n-1 to  2^u * r
     r = n-1
     u = 0
