@@ -12,14 +12,19 @@ def init():
     global p,q,n,e,d,phi_n
     print("init")
     # generate prime nember p, q
-    p = randomPrime()
-    q = randomPrime()
+    p = randomBigPrime()
+    print("p : ",p)
+    q = randomBigPrime()
+    print("q : ",q)
     n = p * q
+    print("n : ",n)
+    print("len n : ",len(str(n)))
     phi_n = (p-1)*(q-1)
+    print("phi n : ",phi_n)
     e = findMinInterprime( phi_n )
+    print("e : ",e)
     d = findInverse(e, phi_n)
-    print("p q n e d")
-    print(p,q,n,e,d)
+    print("d : ",d)
     return
 
 def encrypt():
@@ -45,22 +50,12 @@ def decrypt():
     print("x : ",x)
     return
 
-def randomPrime():
-    min = 2
-    max  = 100
-    primes = []
-    # random choose prime between the range
-    for i in range(min, max):
-        if isPrime(i*2+1):
-            primes.append(i*2+1)
-    return random.choice(primes)
-
-#generate 512bit prime
+#generate 2 513bit prime ==> 1025 bit n
 def randomBigPrime():
     while 1 == 1:
-        #get random 512bit big odd number
+        #get random 513bit big odd number
         bigNum = "1"
-        for _ in range(510):
+        for _ in range(511):
             if random.random() > 0.5:
                 bigNum += "1"
             else:
@@ -73,14 +68,6 @@ def randomBigPrime():
         #not prime, do again until find
         continue
     print("WTF???")
-
-#not boost yet
-def isPrime(primeTesting):
-    #test every num < test^0.5
-    for i in range(1, math.ceil( primeTesting ** 0.5 + 0.1 )):
-        if math.gcd(i, primeTesting) != 1:
-            return False
-    return True
 
 #fast base^exp % mod
 def square_and_multiply(base, exp, mod):
@@ -115,7 +102,7 @@ def miller_rabin_test(n, k):
         #use square and multiply to boost
         res = square_and_multiply(witness,r,n)
         #test next witness
-        if res == 1 or res == -1:
+        if res == 1 or res == n-1:
             continue
         passFlag = False
         for _ in range(u-1):
@@ -128,7 +115,7 @@ def miller_rabin_test(n, k):
         if passFlag == True:
             continue
         #test fail. composite confirm
-        print("test fail, witness",witness)
+        #print("test fail, witness",witness)
         return False
     print("find!")
     return True
@@ -142,20 +129,15 @@ def findMinInterprime(a):
     return 0
 
 #找到 base^-1
+# a^ phi_n = 1 % mod = a ^ (mod-1) = a * a^(mod-2)
+# a * a^-1 = 1 %mod
+# a^-1 = a^(mod-2) % mod
 def findInverse( base , mod ):
-    for i in range(2, mod):
-        if (base * i) % mod == 1 :
-            return i
-    print("not found inverse... mod",mod)
-    return 0
+    return square_and_multiply(base, mod-2, mod)
 
 #test zone
-while 1== 1:
-        
-    i = int(input("input miller"))
-    miller_rabin_test(i,5)
-#randomBigPrime()
-quit()
+
+#quit()
 ##
 
 mode = input('輸入動作代碼 1/加密 2/解密 :  ')
