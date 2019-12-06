@@ -126,12 +126,26 @@ def findMinInterprime(a):
     print("not found interprime...")
     return 0
 
+#Extended Euclidean algorithm
+# a * a^-1 = 1 mod x
+# a * a^-1  + x * (-y) = 1
+# func return (gcd, a^-1, -y)
+def egcd(a, b):
+	if a == 0:
+		return (b, 0, 1)
+	else:
+		gcd, x, y = egcd(b % a, a)
+		return (gcd, y - (b//a) * x, x)
+
 #找到 base^-1
-# a^ phi_n = 1 % mod = a ^ (mod-1) = a * a^(mod-2)
-# a * a^-1 = 1 %mod
-# a^-1 = a^(mod-2) % mod
+# base * base^-1 = 1 mod mod
 def findInverse( base , mod ):
-    return square_and_multiply(base, mod-2, mod)
+    _,x,_ = egcd(base,mod)
+    # if gcd(base, mod) = 1
+    # base * x + mod*(-y) = 1
+    # base * x = 1 mod mod
+    # x % mod = base^-1
+    return x % mod
 
 #test zone
 
