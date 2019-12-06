@@ -10,7 +10,7 @@ phi_n = 0
 
 def init():
     global p,q,n,e,d,phi_n
-    print("init")
+    print("#####init############")
     # generate prime nember p, q
     p = randomBigPrime()
     print("p : ",p)
@@ -18,7 +18,6 @@ def init():
     print("q : ",q)
     n = p * q
     print("n : ",n)
-    print("len n : ",len(str(n)))
     phi_n = (p-1)*(q-1)
     print("phi n : ",phi_n)
     e = findMinInterprime( phi_n )
@@ -28,28 +27,45 @@ def init():
     return
 
 def encrypt():
-    print("encrypt")
-    x = input("input x : ")
+    print("######encrypt##########")
+    x = input("input plainText : ")
+    # turn input to ascii code, then bin string
+    plainTxt = ""
+    for i in x :
+        plainTxt += str("{0:08b}".format(ord(i)))
+    #turn to dec
+    plainNum = int(plainTxt,2)
     #y = x^e % n
     ##  y = x ^ (e%phi_n)  % n
-    y = square_and_multiply( int(x), e%phi_n, n)
+    y = square_and_multiply( plainNum, e%phi_n, n)
     #y = ( int(x) ** (e % phi_n) ) % n
-    print("y : ",y)
+    print("cipherText : ",y)
     print("n : ",n)
     print("d : ",d)
     return
 
 def decrypt():
-    print("decrypt")
-    y = int( input("input y : ") )
-    
+    print("#########decrypt#########")
+    y = int( input("input cipherText : ") )
     n = int( input("input n : ") )
     d = int( input("input d : ") )
     #x = y^d % n
-    ##  x = y ^ (d%phi_n)  % n
-    x = square_and_multiply(y,d,n)
     #x = ( y ** d ) % n
-    print("x : ",x)
+    x = square_and_multiply(y,d,n)
+    #back to binary
+    cipherStr = str("{0:b}".format(x))
+    cipherIndex = 0
+    plainTxt = ""
+    # fill 0 to left to avoid error
+    needToPadding = 8 - len(cipherStr) % 8
+    cipherStr = cipherStr.zfill(len(cipherStr) + needToPadding)
+    while cipherIndex < len(cipherStr):
+        charBinStr = cipherStr[cipherIndex : cipherIndex + 8 ]
+        cipherIndex += 8
+        charAscii = int(charBinStr,2)
+        char = chr(charAscii)
+        plainTxt += char
+    print("plainTxt : ",plainTxt)
     return
 
 #generate 2 512bit prime ==> 1024 bit n
@@ -115,7 +131,7 @@ def miller_rabin_test(n, k):
         #test fail. composite confirm
         #print("test fail, witness",witness)
         return False
-    print("find!")
+    #print("find!")
     return True
 
 #找到最小互質
@@ -160,5 +176,3 @@ if mode == "1":
     encrypt()
 elif mode == "2":
     decrypt()
-    
-print("end")
