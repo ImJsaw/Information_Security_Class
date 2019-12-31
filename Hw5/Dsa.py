@@ -1,8 +1,9 @@
 import random
+from hashlib import sha1
 
 
 class DSA:
-    def __init__(self):
+    def _init(self):
         print("-------------------------------------- init -------------------------------------")
         # generate prime number p, q
         self.p, self.q = self._generate_p_and_q()
@@ -13,6 +14,46 @@ class DSA:
         print(f'd:{self.d}')
         self.b = self._generate_b()
         print(f'b:{self.b}')
+        self.ke = random.randint(1, self.q)
+        print(f'ke:{self.ke}')
+
+    def sign(self):
+        self._init()
+        print("-------------------------------------- sign ------------------------------------")
+        x = input("Enter plain_text : ").encode('utf-8')
+
+        r = self._generate_r()
+        print(f'r:{r}')
+        s = self._generate_s(r, x)
+        print(f's:{s}')
+
+    @staticmethod
+    def verify():
+        print("-------------------------------------- verify -------------------------------------")
+        p = int(input('Enter p : '))
+        q = int(input('Enter q : '))
+        a = int(input('Enter a : '))
+        b = int(input('Enter b : '))
+        r = int(input('Enter r : '))
+        s = int(input('Enter s : '))
+
+        x = input('Enter plain_text : ').encode('utf-8')
+
+        w = find_inverse(s, q)
+
+        h = int(sha1(x).hexdigest(), 16)
+        v = (a ** (w * h % q) * (b ** (w * r % p))) % q
+        print(f'v:{v}')
+
+    def _generate_s(self, r, plain_text):
+        h = int(sha1(plain_text).hexdigest(), 16)
+        s = ((h + self.d * r) * find_inverse(self.ke, self.q)) % self.q
+        return s
+
+    def _generate_r(self):
+        r = square_and_multiply(self.a, self.ke, self.p)
+        r = square_and_multiply(r, 1, self.q)
+        return r
 
     def _generate_b(self):
         b = square_and_multiply(self.a, self.d, self.p)
@@ -101,7 +142,24 @@ def square_and_multiply(base, exp, mod):
     return ans
 
 
+def extended_gcd(a, b):
+    if a == 0:
+        return b, 0, 1
+    else:
+        gcd, x, y = extended_gcd(b % a, a)
+        return gcd, y - (b // a) * x, x
+
+
+def find_inverse(base, mod):
+    _, x, _ = extended_gcd(base, mod)
+    return x % mod
+
+
 if __name__ == '__main__':
-    # mode = input('輸入指令 encrypt/加密 decrypt/解密 :  ')
+    mode = input('輸入指令 0/sign 1/verify :  ')
 
     dsa = DSA()
+    if mode == '0':
+        dsa.sign()
+    elif mode == '1':
+        dsa.verify()
