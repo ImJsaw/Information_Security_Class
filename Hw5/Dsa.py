@@ -11,11 +11,11 @@ class DSA:
         self.a = self._generate_a()
         print(f'a:{self.a}')
         self.d = random.randint(1, self.q)
-        print(f'd:{self.d}')
+        #print(f'd:{self.d}')
         self.b = self._generate_b()
         print(f'b:{self.b}')
         self.ke = random.randint(1, self.q)
-        print(f'ke:{self.ke}')
+        #print(f'ke:{self.ke}')
 
     def sign(self):
         self._init()
@@ -42,8 +42,10 @@ class DSA:
         w = find_inverse(s, q)
 
         h = int(sha1(x).hexdigest(), 16)
-        v = (a ** (w * h % q) * (b ** (w * r % p))) % q
+        v =  ( (square_and_multiply(a, (w * h) % q, p) * square_and_multiply(b, (w *r) % p, p) ) %p ) % q
+        #v = (a ** (w * h % q) * (b ** (w * r % p))) % q
         print(f'v:{v}')
+        print(f'r:{r}')
 
     def _generate_s(self, r, plain_text):
         h = int(sha1(plain_text).hexdigest(), 16)
@@ -52,8 +54,8 @@ class DSA:
 
     def _generate_r(self):
         r = square_and_multiply(self.a, self.ke, self.p)
-        r = square_and_multiply(r, 1, self.q)
-        return r
+        #r = square_and_multiply(r, 1, self.q)
+        return r%self.q
 
     def _generate_b(self):
         b = square_and_multiply(self.a, self.d, self.p)
